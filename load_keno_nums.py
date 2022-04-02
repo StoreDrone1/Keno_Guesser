@@ -1,16 +1,15 @@
 #this file loads the keno numbers and appends an ongoing file.
+from typing import final
 import bs4 as bs
 import requests
 import datetime as dt
 import numpy as np
 from datetime import timedelta
-#create file to store keno numbers
-#f_name = 'keno_nums'
-#file = f_name+'.txt'
 
-#file = open("keno_nums.xml", mode='r+a', encoding='utf-8')
 def get_nums():
-    start = dt.datetime(2009, 7, 1)
+    #last known date (2021, 2, 22)
+    #change date everytime you run to update the master files
+    start = dt.datetime(2022, 3, 13)
     end = dt.datetime.now()
     delta = dt.timedelta(days=1)
     knums = []
@@ -27,7 +26,7 @@ def get_nums():
         else:
             page_max = 18    
         #create link to webpage and concat the date / page values
-        link = 'https://www.ohiolottery.com/WinningNumbers/KenoDrawings/KenoDrawingsArchive?date=' + str(start.month) + '%2f' + str(start.day) + '%2f' + str(start.year) + '&page=' + str(page)#+ '&aliaspath=%2fWinningNumbers%2fKenoDrawings%2fKenoDrawingsArchive'
+        link = 'https://www.ohiolottery.com/WinningNumbers/KenoDrawings/KenoDrawingsArchive?date=' + str(start.month) + '%2f' + str(start.day) + '%2f' + str(start.year) + '&page=' + str(page)
         #get response from lottery website
         r = requests.get(link)
 
@@ -44,13 +43,10 @@ def get_nums():
                 #crude, but removes everything we dont need from the list
                 format_nums = str(nums).translate({ord(i): None for i in '[]</td>clasboerfu=",'})
                 knums.append(format_nums)
-                #print(format_nums)
-                #hopefully the text file doesn't explode ;/
-                with open("keno_numbers.txt", 'a') as file:
-                    file.writelines(format_nums)
-                    file.close()
-        except AttributeError:
-            print("continuing")
+                with open("keno_numbers_" + str(start.month) + "_" + str(start.day) + "_" + str(start.year) + ".txt", 'a') as lottery_file:
+                    lottery_file.write(format_nums + '\n')
+        except AttributeError as err:
+            print("Error result - {0}".format(AttributeError))
             pass
         #only increment day once all pages have been recorded then reset page to 1
         if page == page_max:
@@ -59,5 +55,6 @@ def get_nums():
                 
     return knums
 
-n = np.array(get_nums())
-print(n.size)
+print("getting keno numbers...")
+k_results = get_nums()
+print("finished getting numbers")
